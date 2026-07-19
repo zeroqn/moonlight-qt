@@ -1,0 +1,49 @@
+name: Build Moonlight Qt and upload release assets
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Configure Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build Moonlight Qt package
+        run: nix build .#releaseBuild --print-build-logs
+
+      - name: Package build output
+        id: package
+        shell: bash
+        run: |
+          asset_name="moonlight-qt-main-x86_64-linux.tar.gz"
+          tar --create --gzip --dereference --file "$asset_name" --directory result .
+          echo "asset_name=$asset_name" >> "$GITHUB_OUTPUT"
+
+      - name: Update rolling release tag
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag -fa main-build -m 'Rolling release for main branch'
+          git push origin refs/tags/main-build --force
+
+      - name: Upload asset to GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: main-build
+          name: Main branch build
+          prerelease: true
+          files: ${{ steps.package.outputs.asset_name }}
