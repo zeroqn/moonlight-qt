@@ -56,7 +56,7 @@
           name = "update-release-assets";
           runtimeInputs = [ pkgs.bash pkgs.curl pkgs.jq pkgs.nix ];
           text = ''
-            exec ${./updater.sh} "$@"
+            exec bash ${./updater.sh} "$@"
           '';
         };
       in
