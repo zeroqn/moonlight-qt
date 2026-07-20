@@ -55,6 +55,10 @@ stdenvNoCC.mkDerivation {
     runHook postInstall
   '';
 
+  qtWrapperArgs = [
+    "--set" "QML_DISABLE_DISK_CACHE" "1"
+  ];
+
   meta = {
     description = "Play your PC games on almost any device";
     homepage = "https://github.com/${releaseAsset.owner}/${releaseAsset.repo}/releases/tag/${releaseAsset.tag}";
